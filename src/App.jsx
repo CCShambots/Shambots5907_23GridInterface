@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import KeyValueTable from './components/general-components/KeyValueTable';
 import useGlobalListener from './networktables/useGlobalListener';
 import ConnectionWarning from './components/ConnectionWarning.jsx';
 import React, {Component} from 'react';
@@ -21,7 +20,7 @@ function App() {
 
   return (
     <div className="App">
-        {/*<ConnectionWarning/>*/} {/*TODO: Uncomment*/}
+        {/*<ConnectionWarning/>*/}
 
         <Grid/>
 
