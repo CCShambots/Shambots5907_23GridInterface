@@ -1,0 +1,51 @@
+div {
+    color: white;
+    font-size: 50px;
+}
+
+.grid {
+    display: flex;
+    flex-shrink: inherit;
+    justify-content: center;
+    height:100%;
+}
+
+.row {
+    display: flex;
+    margin: 8px;
+}
+
+.entry {
+    width: 9vw;
+    height: 11vh;
+    margin: 8px;
+    margin-bottom: 0px;
+    background-color: white;
+    border: 3px solid black;
+}
+
+.cone {
+    background-color: yellow;
+}
+
+.cone-next {
+    background-color: yellow;
+    color:black;
+    text-align: center;
+}
+
+.cube {
+    background-color: purple;
+}
+
+.cube-next {
+    background-color: purple;
+    color:white;
+    text-align: center;
+
+}
+
+.next {
+    background-color: green;
+    color:green;
+}

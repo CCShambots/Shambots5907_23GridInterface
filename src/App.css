@@ -1,0 +1,17 @@
+.gyro-input {
+  display: flex;
+  align-items: center;
+}
+
+.gyro-input input {
+  display: inline-block;
+  margin-left: 8px;
+}
+
+html, body, .App, .App>div {
+  background-color: #333333;
+  width: 100%;
+  height: 100%;
+  margin: 0px;
+  padding: 0px;
+}
