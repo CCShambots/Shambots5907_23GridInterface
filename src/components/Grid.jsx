@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import './Grid.css';
 
 import useEntry from '../networktables/useEntry';
+import {getValueType} from "@frc-web-components/frc-web-components/src/existing-components";
 
 function GridEntry(props) {
 
@@ -17,8 +18,14 @@ function GridEntry(props) {
     )
 }
 const Grid = () => {
-    const [nextRow, setNextRow] = useEntry('/cone-ui/next/row', 0);
-    const [nextCol, setNextCol] = useEntry('/cone-ui/next/col', 0);
+    const [nextRow, setNextRow] = useEntry('/grid-ui/next/row', 0); //The next row to place an element
+    const [nextCol, setNextCol] = useEntry('/grid-ui/next/col', 0); //The next column to place an element
+
+    const [placedRow] = useEntry('/grid-ui/placed/row', -1); //The row of an element just placed
+    const [placedCol] = useEntry('/grid-ui/placed/col', -1); //The column of an element just placed
+    const [justPlaced, setJustPlaced] = useEntry('/grid-ui/placed/just-placed', false); //Flag to indicate the bot just placed a cone
+
+    const [forceElement] = useEntry('/grid-ui/force-type', "none");
 
     let startGrid = Array(3);
 
@@ -52,12 +59,21 @@ const Grid = () => {
         setGrid(newGrid);
     };
 
-    let nextType = determineNextType(nextCol)
+    if(justPlaced && gridSpaceFilled(placedRow, placedCol)) {
+        handleClick(placedRow, placedCol);
+        setJustPlaced(false);
+    }
+
+
+    let nextType = determineElementType(nextRow, nextCol)
+    if(nextType == "both") nextType = "cone"
+
+    if(forceElement != "none") nextType = forceElement;
 
     let links = getLinks(grid);
     let linkCoords = getLinkCoords(links);
 
-    let next = evaluateNext(grid, linkCoords, links.length, true); //TODO: coopertition bonus
+    let next = evaluateNext(grid, linkCoords, links.length, true, forceElement); //TODO: coopertition bonus
     setNextRow(next.row)
     setNextCol(next.col)
 
@@ -65,6 +81,7 @@ const Grid = () => {
         <div>
             <p className={nextType + "-next"}>Next: {nextType}</p>
             <table className="grid">
+                <tbody>
                     {grid.map((row, rowIndex) => (
                         <tr className="grid-row" key={rowIndex}>
                             {row.map((entry, colIndex) => (
@@ -81,15 +98,16 @@ const Grid = () => {
                             ))}
                         </tr>
                     ))}
+                </tbody>
            </table>
         </div>
     );
 };
 
-function determineNextType(col) {
-    return col == 1 || col == 4 || col == 7 ? "cube" : "cone"
-
-    //TODO: make this respect ambiguity on bottom row
+function determineElementType(row, col) {
+    if(row == 2) return "both"
+    else if (col==1 || col==4 || col==7) return "cube"
+    else return "cone"
 }
 
 function getLinks(grid) {
@@ -137,19 +155,29 @@ function isPartOfLink(row, col, linkCoords) {
     return linkCoords.filter((e) => e.row == row && e.col == col).length > 0
 }
 
-function evaluateNext(grid, linkCoords, numLinks, goForAdvancements) {
+function evaluateNext(grid, linkCoords, numLinks, goForAdvancements, forceType) {
+
+    let toUse = new Array();
 
     let completions = linkCompletions(grid, linkCoords);
 
-    if(completions.length > 0) return completions[0];
-
-    if(goForAdvancements) {
+    if(completions.length > 0) toUse = completions;
+    else if(goForAdvancements) {
         let advancements = linkAdvancements(grid, linkCoords)
 
-        if(advancements.length > 0) return advancements[0];
+        if(advancements.length > 0) toUse = advancements[0];
     }
 
-    return nextHighest(grid)
+    if(toUse.length > 0) {
+        for(let i = 0; i<toUse.length; i++) {
+            let thisElement = toUse[i]
+            if(determineElementType(thisElement.row, thisElement.col) == forceType || forceType == "none") {
+                return toUse[i]
+            }
+        }
+    }
+
+    else nextHighest(grid, forceType)
 }
 
 function linkCompletions(grid, linkCoords) {
