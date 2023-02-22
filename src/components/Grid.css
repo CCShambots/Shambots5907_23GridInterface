@@ -4,22 +4,18 @@ div {
 }
 
 .grid {
-    display: flex;
-    flex-shrink: inherit;
-    justify-content: center;
-    height:100%;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-.row {
-    display: flex;
-    margin: 8px;
+.grid-row {
+
 }
 
 .entry {
-    width: 9vw;
-    height: 11vh;
-    margin: 8px;
-    margin-bottom: 0px;
+    height: 11vw;
+    width: 11vw;
+    padding: 10px;
     background-color: white;
     border: 3px solid black;
 }
@@ -42,10 +38,20 @@ div {
     background-color: purple;
     color:white;
     text-align: center;
+}
 
+.both {
+    background: linear-gradient(to top right, purple 0%, purple 50%, transparent 50%, transparent 100%), linear-gradient(to bottom left, yellow 0%, yellow 50%, transparent 50%, transparent 100%);
+    background-size: 100% 100%;
+    background-position: left top, right bottom;
+    background-repeat: no-repeat;
 }
 
 .next {
     background-color: green;
     color:green;
+}
+
+.link {
+    background-color: blue;
 }
