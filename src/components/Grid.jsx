@@ -54,8 +54,12 @@ const Grid = () => {
 
     let nextType = determineNextType(nextCol)
 
-    let linkCoords = getLinkCoords(getLinks(grid));
+    let links = getLinks(grid);
+    let linkCoords = getLinkCoords(links);
 
+    let next = evaluateNext(grid, linkCoords, links.length, true); //TODO: coopertition bonus
+    setNextRow(next.row)
+    setNextCol(next.col)
 
     return (
         <div>
@@ -133,32 +137,42 @@ function isPartOfLink(row, col, linkCoords) {
     return linkCoords.filter((e) => e.row == row && e.col == col).length > 0
 }
 
-function evaluateNext(grid, numLinks, linkBonusAttained) {
-    let gridTranspose = transpose(grid)
+function evaluateNext(grid, linkCoords, numLinks, goForAdvancements) {
 
-    if(numLinks < linkBonusAttained ? 4 : 5) { //Only look to complete links if we haven't gotten the RP for links yet
+    let completions = linkCompletions(grid, linkCoords);
 
+    if(completions.length > 0) return completions[0];
 
-    } else {
-        return nextHighest(gridTranspose)
+    if(goForAdvancements) {
+        let advancements = linkAdvancements(grid, linkCoords)
+
+        if(advancements.length > 0) return advancements[0];
     }
+
+    return nextHighest(grid)
 }
 
-function linkCompletions(gridTranspose) {
+function linkCompletions(grid, linkCoords) {
 
     let completions = new Array();
 
-    for(let row = 0; row<gridTranspose.length; row++) {
-        for(let col = 0; col<gridTranspose[0].length; col++) {
-            if(!gridSpaceFilled(gridTranspose[row][col])) { //Only evaluate for pairs if the node is not filled
+    for(let row = 0; row<grid.length; row++) {
+        for(let col = 0; col<grid[0].length; col++) {
+            if(!gridSpaceFilled(grid[row][col])) { //Only evaluate for pairs if the node is not filled
                 if(col >= 2) {
-                    if(gridSpaceFilled(gridTranspose[row][col-2]) && gridSpaceFilled(gridTranspose[row][col-1])) {
+                    if(isGoodEntry(grid, row, col-2, linkCoords) && isGoodEntry(grid, row, col-1, linkCoords)) {
                         completions.push({row: row, col: col}); //Add this node to the list if the two nodes to the left are filled
                     }
                 }
 
-                if(col <= gridTranspose[0].length - 2) {
-                    if(gridSpaceFilled(gridTranspose[row][col+2]) && gridSpaceFilled(gridTranspose[row][col+1])) {
+                if(col >= 1) {
+                    if(isGoodEntry(grid, row, col-1, linkCoords) && isGoodEntry(grid, row, col+1, linkCoords)) {
+                        completions.push({row: row, col: col}); //Add this node to the list if the nodes on either side are filled
+                    }
+                }
+
+                if(col <= grid[0].length - 2) {
+                    if(isGoodEntry(grid, row, col+2, linkCoords) && isGoodEntry(grid, row, col+1, linkCoords)) {
                         completions.push({row: row, col: col}) //Add this node to the list if the two nodes to the right are filled
                     }
                 }
@@ -169,18 +183,18 @@ function linkCompletions(gridTranspose) {
     return completions;
 }
 
-function linkAdvancements(gridTranspose) {
+function linkAdvancements(grid, linkCoords) {
 
     let advancements = new Array();
 
-    for(let row = 0; row<gridTranspose.length; row++) {
-        for(let col = 1; col<gridTranspose[0].length-1; col++) {
-            if(!gridSpaceFilled(gridTranspose[row][col])) { //Only evaluate for pairs if the node is not filled
-                if(gridSpaceFilled(gridSpaceFilled(gridTranspose[row][col-1]))) {
-                    advancements.push({row: row, col: col}); //Add this node to the list if the two nodes to the left are filled
+    for(let row = 0; row<grid.length; row++) {
+        for(let col = 1; col<grid[0].length-1; col++) {
+            if(!gridSpaceFilled(grid[row][col])) { //Only evaluate for pairs if the node is not filled
+                if(isGoodEntry(grid, row, col-1, linkCoords)) {
+                    advancements.push({row: row, col: col}); //Add this node to the list if the node to the left is good
                 }
-                if(gridSpaceFilled(gridTranspose[row][col+2]) && gridSpaceFilled(gridTranspose[row][col+1])) {
-                    advancements.push({row: row, col: col}) //Add this node to the list if the two nodes to the right are filled
+                if(isGoodEntry(grid, row, col+1, linkCoords)) {
+                    advancements.push({row: row, col: col}) //Add this node to the list if the node to the right is good
                 }
             }
         }
@@ -189,10 +203,10 @@ function linkAdvancements(gridTranspose) {
     return advancements;
 }
 
-function nextHighest(gridTranspose) {
-    for(let row=0; row<gridTranspose.length; row++) {
-        for(let col = 0; col<gridTranspose[0].length; col++) {
-            if(gridTranspose[row][col]) return {row: row, col: col}
+function nextHighest(grid) {
+    for(let row=0; row<grid.length; row++) {
+        for(let col = 0; col<grid[0].length; col++) {
+            if(!grid[row][col]) return {row: row, col: col}
         }
     }
 
@@ -201,6 +215,10 @@ function nextHighest(gridTranspose) {
 
 function gridSpaceFilled(entry) {
     return entry != "";
+}
+
+function isGoodEntry(grid, row, col, linkCoords) {
+    return grid[row][col] != "" && !isPartOfLink(row, col, linkCoords)
 }
 
 
