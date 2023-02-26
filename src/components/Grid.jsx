@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import './Grid.css';
 
 import useEntry from '../networktables/useEntry';
-import {getValueType} from "@frc-web-components/frc-web-components/src/existing-components";
 
 function GridEntry(props) {
 
@@ -17,6 +16,7 @@ function GridEntry(props) {
         ></td>
     )
 }
+
 const Grid = () => {
     const [nextRow, setNextRow] = useEntry('/grid-ui/next/row', 0); //The next row to place an element
     const [nextCol, setNextCol] = useEntry('/grid-ui/next/col', 0); //The next column to place an element
@@ -27,6 +27,7 @@ const Grid = () => {
 
     const [forceElement] = useEntry('/grid-ui/force-type', "none");
 
+    //TODO: Sync grid state to NT so we can recover in case of page reload
     let startGrid = Array(3);
 
     for(let i = 0; i<startGrid.length; i++) {
@@ -35,33 +36,45 @@ const Grid = () => {
 
     const [grid, setGrid] = useState(startGrid);
 
+    const [override, setOverride] = useState(true);
+
+    const [runAlgoOnce, setRunAlgoOnce] = useState(true);
+
     let handleClick = (rowIndex, colIndex) => {
-        const newGrid = [...grid];
 
-        if(colIndex == nextCol && rowIndex == nextRow) {
-            setNextRow(-1);
-            setNextCol(-1);
-        }
+        if(!override) {
+            const newGrid = [...grid];
 
-        if (newGrid[rowIndex][colIndex] === "") {
-            if(rowIndex == 2) {
-                newGrid[rowIndex][colIndex] = "both";
-            }else {
-                if (colIndex === 1 || colIndex === 4 || colIndex === 7) {
-                    newGrid[rowIndex][colIndex] = "cube";
-                } else {
-                    newGrid[rowIndex][colIndex] = "cone";
-                }
+            if(colIndex == nextCol && rowIndex == nextRow) {
+                setNextRow(-1);
+                setNextCol(-1);
             }
+
+            if (newGrid[rowIndex][colIndex] === "") {
+                if(rowIndex == 2) {
+                    newGrid[rowIndex][colIndex] = "both";
+                }else {
+                    if (colIndex === 1 || colIndex === 4 || colIndex === 7) {
+                        newGrid[rowIndex][colIndex] = "cube";
+                    } else {
+                        newGrid[rowIndex][colIndex] = "cone";
+                    }
+                }
+            } else {
+                newGrid[rowIndex][colIndex] = "";
+            }
+            setGrid(newGrid);
         } else {
-            newGrid[rowIndex][colIndex] = "";
+            setNextRow(rowIndex);
+            setNextCol(colIndex);
         }
-        setGrid(newGrid);
     };
 
     if(justPlaced && gridSpaceFilled(placedRow, placedCol)) {
         handleClick(placedRow, placedCol);
         setJustPlaced(false);
+        setRunAlgoOnce(true)
+
     }
 
 
@@ -73,9 +86,13 @@ const Grid = () => {
     let links = getLinks(grid);
     let linkCoords = getLinkCoords(links);
 
-    let next = evaluateNext(grid, linkCoords, links.length, true, forceElement); //TODO: coopertition bonus
-    setNextRow(next.row)
-    setNextCol(next.col)
+    if(!override || runAlgoOnce) {
+        let next = evaluateNext(grid, linkCoords, links.length, true, forceElement); //TODO: decide when not to go for advancements
+        setNextRow(next.row)
+        setNextCol(next.col)
+
+        setRunAlgoOnce(false)
+    }
 
     return (
         <div>
@@ -83,7 +100,7 @@ const Grid = () => {
             <table className="grid">
                 <tbody>
                     {grid.map((row, rowIndex) => (
-                        <tr className="grid-row" key={rowIndex}>
+                        <tr key={rowIndex}>
                             {row.map((entry, colIndex) => (
                                     <GridEntry
                                         entry={entry}
@@ -100,6 +117,9 @@ const Grid = () => {
                     ))}
                 </tbody>
            </table>
+            <div onClick={() => setOverride(!override)} className={(override ? "override" : "indicate") + " bottom-button"}>
+                <p className={"bottom-text"}>{override ? "OVERRIDE" : "INDICATE"}</p>
+            </div>
         </div>
     );
 };
@@ -161,6 +181,7 @@ function evaluateNext(grid, linkCoords, numLinks, goForAdvancements, forceType) 
 
     let completions = linkCompletions(grid, linkCoords);
 
+
     if(completions.length > 0) toUse = completions;
     else if(goForAdvancements) {
         let advancements = linkAdvancements(grid, linkCoords)
@@ -177,7 +198,7 @@ function evaluateNext(grid, linkCoords, numLinks, goForAdvancements, forceType) 
         }
     }
 
-    else nextHighest(grid, forceType)
+    else return nextHighest(grid, forceType)
 }
 
 function linkCompletions(grid, linkCoords) {

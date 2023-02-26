@@ -8,10 +8,6 @@ div {
     margin-right: auto;
 }
 
-.grid-row {
-
-}
-
 .entry {
     height: 11vw;
     width: 11vw;
@@ -54,4 +50,23 @@ div {
 
 .link {
     background-color: blue;
+}
+
+.bottom-button {
+    margin-top:10px;
+    padding-top:40px;
+    width: 100vw;
+    height: 20vh;
+    text-align: center;
+}
+
+.bottom-text {
+}
+
+.override {
+    background-color: blue;
+}
+
+.indicate {
+    background-color: limegreen;
 }
