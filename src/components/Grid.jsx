@@ -4,10 +4,16 @@ import './Grid.css';
 import useEntry from '../networktables/useEntry';
 
 function GridEntry(props) {
-
     let value = props.entry;
+
+    if(!value && props.force != "none") {
+        //Set the element to be valid if it matches the current force type
+        if(isValid(props.rowIndex, props.colIndex, props.force)) value = "valid"
+    }
+
     if(props.rowIndex == props.nextRow && props.colIndex == props.nextCol) value = "next";
     if(props.link) value = "link"
+
 
     return (
         <td
@@ -100,7 +106,8 @@ const Grid = () => {
     //If we're not in override mode, or we should run the algorithm once, do so
     if(runAlgoOnce) {
         //TODO: make advancements conditional to the highest unfilled row
-        let next = evaluateNext(grid, linkCoords, links.length, true, forceElement); //TODO: decide when not to go for advancements
+        let next = evaluateNext(grid, linkCoords, links.length, false, forceElement); //TODO: decide when not to go for advancements
+
         setNextRow(next.row)
         setNextCol(next.col)
 
@@ -109,7 +116,8 @@ const Grid = () => {
 
     return (
         <div>
-            <p className={nextType + "-next"}>Next: {nextType}</p>
+            <p className={nextType + "-next top-info"}>Next: {nextType}</p>
+            <p className={forceElement+ "-next top-info"}>Force: {forceElement}</p>
             <table className="grid">
                 <tbody>
                     {grid.map((row, rowIndex) => (
@@ -123,6 +131,7 @@ const Grid = () => {
                                         rowIndex={rowIndex}
                                         colIndex={colIndex}
                                         handleClick={handleClick}
+                                        force={forceElement}
                                         key={rowIndex.toString() + colIndex.toString()}
                                     />
                             ))}
@@ -143,6 +152,11 @@ const Grid = () => {
         </div>
     );
 };
+
+function isValid(row, col, forceType) {
+    let type = determineElementType(row, col);
+    return forceType == "none" || type == forceType || type == "both";
+}
 
 function determineElementType(row, col) {
     if(row == 2) return "both"
@@ -197,28 +211,31 @@ function isPartOfLink(row, col, linkCoords) {
 
 function evaluateNext(grid, linkCoords, numLinks, goForAdvancements, forceType) {
 
-    let toUse = new Array();
-
     let completions = linkCompletions(grid, linkCoords);
 
-
-    if(completions.length > 0) toUse = completions;
-    else if(goForAdvancements) {
-        let advancements = linkAdvancements(grid, linkCoords)
-
-        if(advancements.length > 0) toUse = advancements[0];
-    }
-
-    if(toUse.length > 0) {
-        for(let i = 0; i<toUse.length; i++) {
-            let thisElement = toUse[i]
-            if(determineElementType(thisElement.row, thisElement.col) == forceType || forceType == "none") {
-                return toUse[i]
+    if(completions.length > 0) {
+        for(let i = 0; i<completions.length; i++) {
+            let thisElement = completions[i];
+            if(isValid(thisElement.row, thisElement.col, forceType)) {
+                return thisElement;
             }
         }
     }
 
-    else return nextHighest(grid, forceType)
+    if(goForAdvancements) {
+        let advancements = linkAdvancements(grid, linkCoords)
+
+        if(advancements.length > 0) {
+            for(let i = 0; i<advancements.length; i++) {
+                let thisElement = advancements[i];
+                if(isValid(thisElement.row, thisElement.col, forceType)) {
+                    return thisElement;
+                }
+            }
+        }
+    }
+
+    return nextHighest(grid, forceType)
 }
 
 function linkCompletions(grid, linkCoords) {
@@ -272,10 +289,12 @@ function linkAdvancements(grid, linkCoords) {
     return advancements;
 }
 
-function nextHighest(grid) {
+function nextHighest(grid, forceType) {
     for(let row=0; row<grid.length; row++) {
         for(let col = 0; col<grid[0].length; col++) {
-            if(!grid[row][col]) return {row: row, col: col}
+            if(!grid[row][col] && isValid(row, col, forceType)) {
+                return {row: row, col: col}
+            }
         }
     }
 
