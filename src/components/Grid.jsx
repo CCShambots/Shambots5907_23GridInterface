@@ -18,16 +18,20 @@ function GridEntry(props) {
 }
 
 const Grid = () => {
+    //This will be used by both the bot and the ds to indicate what location should be scored in next
     const [nextRow, setNextRow] = useEntry('/grid-ui/next/row', 0); //The next row to place an element
     const [nextCol, setNextCol] = useEntry('/grid-ui/next/col', 0); //The next column to place an element
 
+    //This will be used for the robot to indicate that it just scored at a certain location
     const [placedRow] = useEntry('/grid-ui/placed/row', -1); //The row of an element just placed
     const [placedCol] = useEntry('/grid-ui/placed/col', -1); //The column of an element just placed
     const [justPlaced, setJustPlaced] = useEntry('/grid-ui/placed/just-placed', false); //Flag to indicate the bot just placed a cone
 
+    //This will be used by the robot to indicate if it needs a certain type
     const [forceElement] = useEntry('/grid-ui/force-type', "none");
 
     //TODO: Sync grid state to NT so we can recover in case of page reload
+    //Initialize a new empty grid and use it as a state
     let startGrid = Array(3);
 
     for(let i = 0; i<startGrid.length; i++) {
@@ -36,6 +40,7 @@ const Grid = () => {
 
     const [grid, setGrid] = useState(startGrid);
 
+    //Represents the mode of the interface (override or indicate)
     const [override, setOverride] = useState(true);
 
     const [runAlgoOnce, setRunAlgoOnce] = useState(true);
@@ -64,29 +69,37 @@ const Grid = () => {
                 newGrid[rowIndex][colIndex] = "";
             }
             setGrid(newGrid);
+            setRunAlgoOnce(true);
         } else {
             setNextRow(rowIndex);
             setNextCol(colIndex);
         }
     };
 
-    if(justPlaced && gridSpaceFilled(placedRow, placedCol)) {
+    /*
+    If the bot has just placed an element, and it's been placed in an empty node,
+    fill the node, indicate that we've handled the "just placed" element, and run the algorithm to determine the next type once
+     */
+    if(justPlaced && !gridSpaceFilled(grid[placedRow][placedCol])) {
         handleClick(placedRow, placedCol);
         setJustPlaced(false);
-        setRunAlgoOnce(true)
-
+        setRunAlgoOnce(true);
     }
 
+    let nextType = determineElementType(nextRow, nextCol);
+    if(nextType == "both") nextType = "cube"; //TODO: determine this in a more sensible way
 
-    let nextType = determineElementType(nextRow, nextCol)
-    if(nextType == "both") nextType = "cone"
-
+    //Set the next element type to a force element type if one has been selected by the bot
     if(forceElement != "none") nextType = forceElement;
 
+    //Get the completed links
     let links = getLinks(grid);
+    //Get the coordinates of all completed links
     let linkCoords = getLinkCoords(links);
 
-    if(!override || runAlgoOnce) {
+    //If we're not in override mode, or we should run the algorithm once, do so
+    if(runAlgoOnce) {
+        //TODO: make advancements conditional to the highest unfilled row
         let next = evaluateNext(grid, linkCoords, links.length, true, forceElement); //TODO: decide when not to go for advancements
         setNextRow(next.row)
         setNextCol(next.col)
@@ -117,7 +130,14 @@ const Grid = () => {
                     ))}
                 </tbody>
            </table>
-            <div onClick={() => setOverride(!override)} className={(override ? "override" : "indicate") + " bottom-button"}>
+            <div onClick={() => {
+                if(override) {
+                    setOverride(false);
+                    setRunAlgoOnce(true);
+                } else {
+                    setOverride(true);
+                }
+            }} className={(override ? "override" : "indicate") + " bottom-button"}>
                 <p className={"bottom-text"}>{override ? "OVERRIDE" : "INDICATE"}</p>
             </div>
         </div>
@@ -262,6 +282,11 @@ function nextHighest(grid) {
     return {row: 0, col: 0};
 }
 
+/**
+ * Whether the grid space has an element in it or not
+ * @param entry the entry in the grid
+ * @returns {boolean} whether the node has an element or not
+ */
 function gridSpaceFilled(entry) {
     return entry != "";
 }
