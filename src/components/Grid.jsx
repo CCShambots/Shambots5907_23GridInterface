@@ -25,7 +25,7 @@ function GridEntry(props) {
 
 const Grid = () => {
     //This will be used by both the bot and the ds to indicate what location should be scored in next
-    const [nextRow, setNextRow] = useEntry('/grid-ui/next/row', 0); //The next row to place an element
+    const [nextRow, setNextRow] = useEntry('/grid-ui/next/row', 2); //The next row to place an element
     const [nextCol, setNextCol] = useEntry('/grid-ui/next/col', 0); //The next column to place an element
 
     //This will be used for the robot to indicate that it just scored at a certain location
@@ -36,17 +36,27 @@ const Grid = () => {
     //This will be used by the robot to indicate if it needs a certain type
     const [forceElement] = useEntry('/grid-ui/force-type', "none");
 
-    //TODO: Sync grid state to NT so we can recover in case of page reload
-    //Initialize a new empty grid and use it as a state
-    let startGrid = Array(3);
 
-    for(let i = 0; i<startGrid.length; i++) {
-        startGrid[i] = Array(9).fill("");
+    const [grid0, setGrid0] = useEntry('/grid-ui/grid/row-0', new Array(9).fill(""))
+    const [grid1, setGrid1] = useEntry('/grid-ui/grid/row-1', new Array(9).fill(""))
+    const [grid2, setGrid2] = useEntry('/grid-ui/grid/row-2', new Array(9).fill(""))
+
+    let grid = () => {
+        let grid = new Array(3);
+
+        grid[0] = grid0;
+        grid[1] = grid1;
+        grid[2] = grid2;
+
+        return grid;
     }
 
-    const [grid, setGrid] = useState(startGrid);
+    let setGrid = (grid) => {
+        setGrid0(grid[0])
+        setGrid1(grid[1])
+        setGrid2(grid[2])
+    }
 
-    //Represents the mode of the interface (override or indicate)
     const [override, setOverride] = useState(true);
 
     const [runAlgoOnce, setRunAlgoOnce] = useState(true);
@@ -54,7 +64,7 @@ const Grid = () => {
     let handleClick = (rowIndex, colIndex) => {
 
         if(!override) {
-            const newGrid = [...grid];
+            const newGrid = [...grid()];
 
             if(colIndex == nextCol && rowIndex == nextRow) {
                 setNextRow(-1);
@@ -62,15 +72,7 @@ const Grid = () => {
             }
 
             if (newGrid[rowIndex][colIndex] === "") {
-                if(rowIndex == 2) {
-                    newGrid[rowIndex][colIndex] = "both";
-                }else {
-                    if (colIndex === 1 || colIndex === 4 || colIndex === 7) {
-                        newGrid[rowIndex][colIndex] = "cube";
-                    } else {
-                        newGrid[rowIndex][colIndex] = "cone";
-                    }
-                }
+                newGrid[rowIndex][colIndex] = determineElementType(rowIndex, colIndex);
             } else {
                 newGrid[rowIndex][colIndex] = "";
             }
@@ -86,7 +88,7 @@ const Grid = () => {
     If the bot has just placed an element, and it's been placed in an empty node,
     fill the node, indicate that we've handled the "just placed" element, and run the algorithm to determine the next type once
      */
-    if(justPlaced && !gridSpaceFilled(grid[placedRow][placedCol])) {
+    if(justPlaced && !gridSpaceFilled(grid()[placedRow][placedCol])) {
         handleClick(placedRow, placedCol);
         setJustPlaced(false);
         setRunAlgoOnce(true);
@@ -99,14 +101,16 @@ const Grid = () => {
     if(forceElement != "none") nextType = forceElement;
 
     //Get the completed links
-    let links = getLinks(grid);
+    let links = getLinks(grid());
     //Get the coordinates of all completed links
     let linkCoords = getLinkCoords(links);
 
     //If we're not in override mode, or we should run the algorithm once, do so
     if(runAlgoOnce) {
         //TODO: make advancements conditional to the highest unfilled row
-        let next = evaluateNext(grid, linkCoords, links.length, false, forceElement); //TODO: decide when not to go for advancements
+        let next = evaluateNext(grid(), linkCoords, links.length, false, forceElement); //TODO: decide when not to go for advancements
+
+        console.log(next.row + " " + next.col)
 
         setNextRow(next.row)
         setNextCol(next.col)
@@ -120,7 +124,7 @@ const Grid = () => {
             <p className={forceElement+ "-next top-info"}>Force: {forceElement}</p>
             <table className="grid">
                 <tbody>
-                    {grid.map((row, rowIndex) => (
+                    {grid().map((row, rowIndex) => (
                         <tr key={rowIndex}>
                             {row.map((entry, colIndex) => (
                                     <GridEntry
@@ -159,7 +163,7 @@ function isValid(row, col, forceType) {
 }
 
 function determineElementType(row, col) {
-    if(row == 2) return "both"
+    if(row == 0) return "both"
     else if (col==1 || col==4 || col==7) return "cube"
     else return "cone"
 }
@@ -242,7 +246,7 @@ function linkCompletions(grid, linkCoords) {
 
     let completions = new Array();
 
-    for(let row = 0; row<grid.length; row++) {
+    for(let row = grid.length-1; row>=0; row--) {
         for(let col = 0; col<grid[0].length; col++) {
             if(!gridSpaceFilled(grid[row][col])) { //Only evaluate for pairs if the node is not filled
                 if(col >= 2) {
@@ -273,7 +277,7 @@ function linkAdvancements(grid, linkCoords) {
 
     let advancements = new Array();
 
-    for(let row = 0; row<grid.length; row++) {
+    for(let row = grid.length-1; row>=0; row--) {
         for(let col = 1; col<grid[0].length-1; col++) {
             if(!gridSpaceFilled(grid[row][col])) { //Only evaluate for pairs if the node is not filled
                 if(isGoodEntry(grid, row, col-1, linkCoords)) {
@@ -290,7 +294,7 @@ function linkAdvancements(grid, linkCoords) {
 }
 
 function nextHighest(grid, forceType) {
-    for(let row=0; row<grid.length; row++) {
+    for(let row = grid.length-1; row>=0; row--) {
         for(let col = 0; col<grid[0].length; col++) {
             if(!grid[row][col] && isValid(row, col, forceType)) {
                 return {row: row, col: col}
@@ -298,7 +302,7 @@ function nextHighest(grid, forceType) {
         }
     }
 
-    return {row: 0, col: 0};
+    return {row: 2, col: 0};
 }
 
 /**
