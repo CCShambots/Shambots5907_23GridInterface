@@ -1,4 +1,4 @@
-start cmd /k py -3 -m pynetworktables2js --dashboard
+start cmd /k py -m pynetworktables2js --dashboard
 
 start cmd /k npm run preview
 
