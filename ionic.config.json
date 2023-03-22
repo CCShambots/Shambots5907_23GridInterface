@@ -1,0 +1,7 @@
+{
+  "name": "Grid Interface",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react"
+}

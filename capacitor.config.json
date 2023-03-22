@@ -1,0 +1,8 @@
+{
+  "appId": "com.ccshambots.gridinterface",
+  "appName": "Grid Interface",
+  "bundledWebRuntime": false,
+  "npmClient": "npm",
+  "webDir": "dist",
+  "cordova": {}
+}
