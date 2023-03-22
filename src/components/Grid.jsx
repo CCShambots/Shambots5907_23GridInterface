@@ -57,7 +57,7 @@ const Grid = () => {
         setGrid2(grid[2])
     }
 
-    const [override, setOverride] = useState(true);
+    const [override, setOverride] = useEntry('/grid-ui/override', true);
 
     const [runAlgoOnce, setRunAlgoOnce] = useState(true);
 
