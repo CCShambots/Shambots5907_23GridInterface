@@ -3,19 +3,30 @@ import './Grid.css';
 
 function GridEntry(props) {
     let value = props.entry;
+    let faded = props.entry == "";
 
     if(!value && props.force != "none") {
         //Set the element to be valid if it matches the current force type
         if(isValid(props.rowIndex, props.colIndex, props.force)) value = "valid"
+        faded = false;
     }
 
-    if(props.rowIndex == props.nextRow && props.colIndex == props.nextCol) value = "next";
-    if(props.link) value = "link"
+    if(props.rowIndex == props.nextRow && props.colIndex == props.nextCol) {
+        value = "next";
+        faded = false;
+    }
+    if(props.link)  {
+        value = "link"
+        faded = false;
+    }
 
+    if (value == "") value = determineElementType(props.rowIndex, props.colIndex);
+
+    let coop = props.colIndex == 3 || props.colIndex == 4 || props.colIndex == 5;
 
     return (
         <td
-            className={`entry ${value}`}
+            className={`entry ${faded ? "fade-" : ""}${value}${faded && coop ? "-coop" : ""}`}
             onClick={() => props.handleClick(props.rowIndex, props.colIndex)}
         ></td>
     )

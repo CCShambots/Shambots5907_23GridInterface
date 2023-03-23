@@ -20,6 +20,24 @@ div {
     background-color: yellow;
 }
 
+.fade-cone {
+    background: linear-gradient(to right, yellow, yellow) top left/100% 10px no-repeat,
+    linear-gradient(to right, yellow, yellow) bottom left/100% 10px no-repeat,
+    linear-gradient(to bottom, yellow, yellow) top left/10px 100% no-repeat,
+    linear-gradient(to bottom, yellow, yellow) top right/10px 100% no-repeat,
+    white;
+}
+
+.fade-cone-coop {
+    background: linear-gradient(to right, yellow, yellow) top left/100% 10px no-repeat,
+    linear-gradient(to right, yellow, yellow) bottom left/100% 10px no-repeat,
+    linear-gradient(to bottom, yellow, yellow) top left/10px 100% no-repeat,
+    linear-gradient(to bottom, yellow, yellow) top right/10px 100% no-repeat,
+    gray;
+}
+
+
+
 .top-info {
     text-align: center;
 
@@ -36,6 +54,22 @@ div {
     background-color: purple;
 }
 
+.fade-cube {
+    background: linear-gradient(to right, purple, purple) top left/100% 10px no-repeat,
+    linear-gradient(to right, purple, purple) bottom left/100% 10px no-repeat,
+    linear-gradient(to bottom, purple, purple) top left/10px 100% no-repeat,
+    linear-gradient(to bottom, purple, purple) top right/10px 100% no-repeat,
+    white;
+}
+
+.fade-cube-coop {
+    background: linear-gradient(to right, purple, purple) top left/100% 10px no-repeat,
+    linear-gradient(to right, purple, purple) bottom left/100% 10px no-repeat,
+    linear-gradient(to bottom, purple, purple) top left/10px 100% no-repeat,
+    linear-gradient(to bottom, purple, purple) top right/10px 100% no-repeat,
+    gray;
+}
+
 .cube-next {
     background-color: purple;
     color:white;
@@ -50,6 +84,22 @@ div {
     background-size: 100% 100%;
     background-position: left top, right bottom;
     background-repeat: no-repeat;
+}
+
+.fade-both {
+    background: linear-gradient(to right, purple, yellow) top left/100% 10px no-repeat,
+    linear-gradient(to right, purple, yellow) bottom left/100% 10px no-repeat,
+    linear-gradient(to bottom, purple, purple) top left/10px 100% no-repeat,
+    linear-gradient(to bottom, yellow, yellow) top right/10px 100% no-repeat,
+    white;
+}
+
+.fade-both-coop {
+    background: linear-gradient(to right, purple, yellow) top left/100% 10px no-repeat,
+    linear-gradient(to right, purple, yellow) bottom left/100% 10px no-repeat,
+    linear-gradient(to bottom, purple, purple) top left/10px 100% no-repeat,
+    linear-gradient(to bottom, yellow, yellow) top right/10px 100% no-repeat,
+    gray;
 }
 
 .next {
@@ -79,3 +129,4 @@ div {
 .indicate {
     background-color: limegreen;
 }
+
