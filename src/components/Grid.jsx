@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import './Grid.css';
 
-import useEntry from '../networktables/useEntry';
-
 function GridEntry(props) {
     let value = props.entry;
 
@@ -25,21 +23,21 @@ function GridEntry(props) {
 
 const Grid = () => {
     //This will be used by both the bot and the ds to indicate what location should be scored in next
-    const [nextRow, setNextRow] = useEntry('/grid-ui/next/row', 2); //The next row to place an element
-    const [nextCol, setNextCol] = useEntry('/grid-ui/next/col', 0); //The next column to place an element
+    const [nextRow, setNextRow] = useState(2); //The next row to place an element
+    const [nextCol, setNextCol] = useState(0); //The next column to place an element
 
     //This will be used for the robot to indicate that it just scored at a certain location
-    const [placedRow] = useEntry('/grid-ui/placed/row', -1); //The row of an element just placed
-    const [placedCol] = useEntry('/grid-ui/placed/col', -1); //The column of an element just placed
-    const [justPlaced, setJustPlaced] = useEntry('/grid-ui/placed/just-placed', false); //Flag to indicate the bot just placed a cone
+    const [placedRow] = useState(-1); //The row of an element just placed
+    const [placedCol] = useState(-1); //The column of an element just placed
+    const [justPlaced, setJustPlaced] = useState(false); //Flag to indicate the bot just placed a cone
 
     //This will be used by the robot to indicate if it needs a certain type
-    const [forceElement] = useEntry('/grid-ui/force-type', "none");
+    const [forceElement] = useState("none");
 
 
-    const [grid0, setGrid0] = useEntry('/grid-ui/grid/row-0', new Array(9).fill(""))
-    const [grid1, setGrid1] = useEntry('/grid-ui/grid/row-1', new Array(9).fill(""))
-    const [grid2, setGrid2] = useEntry('/grid-ui/grid/row-2', new Array(9).fill(""))
+    const [grid0, setGrid0] = useState(new Array(9).fill(""))
+    const [grid1, setGrid1] = useState(new Array(9).fill(""))
+    const [grid2, setGrid2] = useState(new Array(9).fill(""))
 
     let grid = () => {
         let grid = new Array(3);
@@ -57,7 +55,7 @@ const Grid = () => {
         setGrid2(grid[2])
     }
 
-    const [override, setOverride] = useEntry('/grid-ui/override', true);
+    const [override, setOverride] = useState(false);
 
     const [runAlgoOnce, setRunAlgoOnce] = useState(true);
 
@@ -121,7 +119,7 @@ const Grid = () => {
     return (
         <div>
             <p className={nextType + "-next top-info"}>Next: {nextType}</p>
-            <p className={forceElement+ "-next top-info"}>Force: {forceElement}</p>
+            {/*<!--<p className={forceElement+ "-next top-info"}>Force: {forceElement}</p>-->*/}
             <table className="grid">
                 <tbody>
                     {grid().map((row, rowIndex) => (
@@ -143,16 +141,16 @@ const Grid = () => {
                     ))}
                 </tbody>
            </table>
-            <div onClick={() => {
-                if(override) {
-                    setOverride(false);
-                    setRunAlgoOnce(true);
-                } else {
-                    setOverride(true);
-                }
-            }} className={(override ? "override" : "indicate") + " bottom-button"}>
-                <p className={"bottom-text"}>{override ? "OVERRIDE" : "INDICATE"}</p>
-            </div>
+{/*             <div onClick={() => { */}
+{/*                 if(override) { */}
+{/*                     setOverride(false); */}
+{/*                     setRunAlgoOnce(true); */}
+{/*                 } else { */}
+{/*                     setOverride(true); */}
+{/*                 } */}
+{/*             }} className={(override ? "override" : "indicate") + " bottom-button"}> */}
+{/*                 <p className={"bottom-text"}>{override ? "OVERRIDE" : "INDICATE"}</p> */}
+{/*             </div> */}
         </div>
     );
 };
